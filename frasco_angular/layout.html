@@ -1,0 +1,14 @@
+{% use_layout %}
+
+{% block html_tag %}
+<html ng-app="{{ app.features.angular.options['app_module'] }}">
+{% endblock %}
+
+{% block assets %}
+    {{ super() }}
+    {% assets "@angular-cdn", "@angular-app" %}
+{% endblock %}
+
+{% block content %}
+<div ng-view></div>
+{% endblock %}
