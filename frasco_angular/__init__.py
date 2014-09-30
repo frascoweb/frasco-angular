@@ -38,12 +38,12 @@ class AngularFeature(Feature):
                 "app_module": "app",
                 "app_deps": [],
                 "partials_dir": "app/partials",
-                "directives_file": "app/directives.js",
+                "directives_file": "app/directives/auto.js",
                 "directives_module": "directives",
                 "views_dir": "app/views",
                 "routes_file": "app/routes.js",
                 "routes_module": "routes",
-                "services_file": "app/services.js",
+                "services_file": "app/services/auto.js",
                 "services_module": "services",
                 "disable_reloading_endpoints": False}
 
