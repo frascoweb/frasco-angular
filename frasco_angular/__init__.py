@@ -1,6 +1,6 @@
 from frasco import Feature, action, Blueprint, View, render_template, current_context, command, hook
 from frasco.utils import remove_yaml_frontmatter
-from frasco.templating import FileLoader
+from frasco.templating import FileLoader, get_template_source
 import os
 import json
 import re
@@ -156,9 +156,7 @@ class AngularFeature(Feature):
         return files
 
     def export_view(self, filename):
-        pathname = os.path.join(self.app.template_path, filename)
-        with open(pathname) as f:
-            source = remove_yaml_frontmatter(f.read())
+        source = remove_yaml_frontmatter(get_template_source(self.app, filename))
         dest = os.path.join(self.options["static_dir"], self.options["views_dir"], filename)
         return (dest, source)
 
@@ -192,7 +190,7 @@ class AngularFeature(Feature):
         template = self.app.jinja_env.macros.resolve_template(macro)
         if not template:
             raise Exception("Macro '%s' cannot be exported to angular because it does not exist" % macro)
-        (source, _, __) = self.app.jinja_env.loader.get_source(self.app.jinja_env, template)
+        source = get_template_source(self.app, template)
 
         m = re.search(r"\{%\s*macro\s+" + re.escape(macro), source)
         if not m:
