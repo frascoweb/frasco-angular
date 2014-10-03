@@ -7,14 +7,15 @@ import re
 
 
 class AngularView(View):
-    def __init__(self, template=None, **kwargs):
+    def __init__(self, template=None, layout='angular_layout.html', **kwargs):
         view_attrs = ('name', 'url', 'methods', 'url_rules')
         self.route_options = { k: kwargs.pop(k) for k in kwargs.keys() if k not in view_attrs}
         super(AngularView, self).__init__(**kwargs)
         self.template = template
+        self.layout = layout
 
     def dispatch_request(self, *args, **kwargs):
-        return render_template("angular_layout.html", **current_context.vars)
+        return render_template(self.layout, **current_context.vars)
 
 
 _endmacro_re = re.compile(r"\{%-?\s*endmacro\s*%\}")
@@ -232,4 +233,5 @@ class AngularFeature(Feature):
                         (name, self.app.services_url_prefix, json.dumps(endpoints, indent=2))
 
         self.assets.append("@angular-frasco", self.options["services_file"])
+        self.options["app_deps"].append(self.options["services_module"])
         return [(filename, module)]
