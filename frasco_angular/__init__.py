@@ -1,4 +1,5 @@
-from frasco import Feature, action, Blueprint, View, render_template, current_context, command, hook
+from frasco import (Feature, action, Blueprint, View, render_template,\
+                    current_context, command, hook, current_app)
 from frasco.utils import remove_yaml_frontmatter
 from frasco.templating import FileLoader, get_template_source
 import os
@@ -7,7 +8,7 @@ import re
 
 
 class AngularView(View):
-    def __init__(self, template=None, layout='angular_layout.html', **kwargs):
+    def __init__(self, template=None, layout=None, **kwargs):
         view_attrs = ('name', 'url', 'methods', 'url_rules')
         self.route_options = { k: kwargs.pop(k) for k in kwargs.keys() if k not in view_attrs}
         super(AngularView, self).__init__(**kwargs)
@@ -15,7 +16,8 @@ class AngularView(View):
         self.layout = layout
 
     def dispatch_request(self, *args, **kwargs):
-        return render_template(self.layout, **current_context.vars)
+        layout = self.layout or current_app.features.angular.options['views_layout']
+        return render_template(layout, **current_context.vars)
 
 
 _endmacro_re = re.compile(r"\{%-?\s*endmacro\s*%\}")
@@ -44,6 +46,7 @@ class AngularFeature(Feature):
                 "views_dir": "app/views",
                 "routes_file": "app/routes.js",
                 "routes_module": "routes",
+                "views_layout": "angular_layout.html",
                 "services_file": "app/services/auto.js",
                 "services_module": "services",
                 "disable_reloading_endpoints": False}
