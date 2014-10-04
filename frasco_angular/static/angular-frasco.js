@@ -47,6 +47,12 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
           },
           post: function(callback) {
             return this.execute({method: 'POST', data: spec.data}, callback);
+          },
+          put: function(callback) {
+            return this.execute({method: 'PUT', data: spec.data}, callback);
+          },
+          delete: function(callback) {
+            return this.execute({method: 'DELETE', params: spec.data}, callback);
           }
         }
       };
