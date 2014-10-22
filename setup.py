@@ -1,14 +1,6 @@
 from setuptools import setup, find_packages
 
 
-def desc():
-    with open("README.md") as f:
-        return f.read()
-
-def reqs():
-    with open('requirements.txt') as f:
-        return f.read().splitlines()
-
 setup(
     name='frasco-angular',
     version='0.1',
@@ -17,13 +9,14 @@ setup(
     author='Maxime Bouroumeau-Fuseau',
     author_email='maxime.bouroumeau@gmail.com',
     description="Angular integration for Frasco",
-    long_description=desc(),
     packages=find_packages(),
-    include_package_data=True,
+    package_data={
+        'frasco_angular': ['layout.html', 'static/*.js']
+    },
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'frasco',
-        'frasco-assets'
+        # 'frasco',
+        # 'frasco-assets'
     ]
 )
