@@ -78,7 +78,8 @@ class AngularFeature(Feature):
             "angular-touch-cdn": [
                 "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-touch.min.js"],
             "angular-frasco": [
-                "frasco_angular/angular-frasco.js"]})
+                {"output": "angular-frasco.min.js", "filters": "jsmin",
+                 "contents": ["frasco_angular/angular-frasco.js"]}]})
 
         app.jinja_env.loader.bottom_loaders.append(FileLoader(
             os.path.join(os.path.dirname(__file__), "layout.html"), "angular_layout.html"))
