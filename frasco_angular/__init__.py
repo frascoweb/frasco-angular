@@ -140,6 +140,9 @@ class AngularFeature(Feature):
             return []
         files = []
         views = []
+        for v in self.app.views.itervalues():
+            if isinstance(v, AngularView):
+                views.append((None, v))
         for name, bp in self.app.blueprints.iteritems():
             if isinstance(bp, Blueprint):
                 for v in bp.views.itervalues():
