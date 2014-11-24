@@ -53,7 +53,12 @@ class AngularFeature(Feature):
                 "services_file": "app/services/auto.js",
                 "services_module": "services",
                 "auto_add_services_module": True,
-                "disable_reloading_endpoints": False}
+                "disable_reloading_endpoints": False,
+                "auto_build": True}
+
+    build_all_signal = signal('angular_build_all')
+    before_build_write_signal = signal('angular_before_build_write')
+    before_clean_signal = signal('angular_before_clean')
 
     def init_app(self, app):
         self.app = app
@@ -107,11 +112,8 @@ class AngularFeature(Feature):
 
     @command()
     def build(self):
-        files = []
-        files.extend(self.build_directives())
-        files.extend(self.build_routes())
-        files.extend(self.build_services())
-        files.extend(self.build_app())
+        files = self.build_all()
+        self.before_build_write_signal.send(self, files=files)
         for filename, source in files:
             if not os.path.exists(os.path.dirname(filename)):
                 os.makedirs(os.path.dirname(filename))
@@ -120,20 +122,26 @@ class AngularFeature(Feature):
 
     @command()
     def clean(self):
-        files = []
-        files.extend(self.build_directives())
-        files.extend(self.build_routes())
-        files.extend(self.build_services())
-        files.extend(self.build_app())
+        files = self.build_all()
+        self.before_clean_signal.send(self, files=files)
         for filename, source in files:
             if os.path.exists(filename):
                 os.unlink(filename)
 
     @hook()
     def before_request(self):
-        if not self.built:
+        if not self.built and self.options["auto_build"]:
             self.build()
             self.built = True
+
+    def build_all(self):
+        files = []
+        files.extend(self.build_directives())
+        files.extend(self.build_routes())
+        files.extend(self.build_services())
+        files.extend(self.build_app())
+        self.build_all_signal.send(self, files=files)
+        return files
 
     def build_routes(self):
         if not self.options['routes_file']:
