@@ -54,7 +54,8 @@ class AngularFeature(Feature):
                 "services_module": "services",
                 "auto_add_services_module": True,
                 "disable_reloading_endpoints": False,
-                "auto_build": True}
+                "auto_build": True,
+                "angular_version": "1.3.3"}
 
     build_all_signal = signal('angular_build_all')
     before_build_write_signal = signal('angular_before_build_write')
@@ -69,23 +70,24 @@ class AngularFeature(Feature):
             self.options["static_url_path"] = app.static_url_path
 
         app.features.assets.expose_package("frasco_angular", __name__)
+        version = self.options['angular_version']
         app.assets.register({
             "angular-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular.min.js" % version],
             "angular-route-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-route.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-route.min.js" % version],
             "angular-resource-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-resource.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-resource.min.js" % version],
             "angular-animate-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-animate.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-animate.min.js" % version],
             "angular-cookies-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-cookies.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-cookies.min.js" % version],
             "angular-loader-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-loader.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-loader.min.js" % version],
             "angular-sanitize-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-sanitize.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-sanitize.min.js" % version],
             "angular-touch-cdn": [
-                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular-touch.min.js"],
+                "https://cdnjs.cloudflare.com/ajax/libs/angular.js/%s/angular-touch.min.js" % version],
             "angular-frasco": [
                 {"output": "angular-frasco.min.js", "filters": "jsmin",
                  "contents": ["frasco_angular/angular-frasco.js"]}]})
