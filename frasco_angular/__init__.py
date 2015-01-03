@@ -52,6 +52,7 @@ class AngularFeature(Feature):
                 "views_layout": "angular_layout.html",
                 "services_file": "app/services/auto.js",
                 "services_module": "services",
+                "services_namespace": "",
                 "auto_add_services_module": True,
                 "disable_reloading_endpoints": False,
                 "auto_build": True,
@@ -260,9 +261,10 @@ class AngularFeature(Feature):
             endpoints = {}
             for view in srv.views:
                 endpoints[view.name] = [convert_url_args(view.url_rules[0][0]), view.func.view_args]
-            module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
+            module += ("\nservices.factory('%s%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
                        "return frascoServiceFactory.make('%s', [], %s);\n}]);\n") % \
-                        (name, self.app.services_url_prefix, json.dumps(endpoints, indent=2))
+                        (self.options['services_namespace'], name, self.app.services_url_prefix,\
+                         json.dumps(endpoints, indent=2))
 
         module += "\n})();";
         self.auto_assets_pkg.append({"filters": "jsmin", "contents": [self.options["services_file"]]})
