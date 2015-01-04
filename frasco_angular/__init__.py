@@ -46,6 +46,7 @@ class AngularFeature(Feature):
                 "partials_dir": "app/partials",
                 "directives_file": "app/directives/auto.js",
                 "directives_module": "directives",
+                "directives_name": "%s",
                 "auto_add_directives_module": True,
                 "views_dir": "app/views",
                 "routes_file": "app/routes.js",
@@ -54,7 +55,7 @@ class AngularFeature(Feature):
                 "views_layout": "angular_layout.html",
                 "services_file": "app/services/auto.js",
                 "services_module": "services",
-                "services_namespace": "",
+                "services_name": "%s",
                 "auto_add_services_module": True,
                 "disable_reloading_endpoints": False,
                 "auto_build": True,
@@ -207,7 +208,8 @@ class AngularFeature(Feature):
                   "\n(function() {\n\nvar directives = angular.module('%s', []);\n\n") % self.options["directives_module"]
         for name, options in directives.iteritems():
             name = options.pop("name", name)
-            module += "directives.directive('%s', function() {\nreturn %s;\n});\n\n" % (name, json.dumps(options, indent=4))
+            module += "directives.directive('%s', function() {\nreturn %s;\n});\n\n" % \
+                (self.options['directives_name'] % name, json.dumps(options, indent=4))
 
         module += "})();";
         filename = os.path.join(self.options["static_dir"], self.options["directives_file"])
@@ -265,9 +267,9 @@ class AngularFeature(Feature):
             endpoints = {}
             for view in srv.views:
                 endpoints[view.name] = [convert_url_args(view.url_rules[0][0]), view.func.view_args]
-            module += ("\nservices.factory('%s%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
+            module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
                        "return frascoServiceFactory.make('%s', [], %s);\n}]);\n") % \
-                        (self.options['services_namespace'], name, self.app.services_url_prefix,\
+                        (self.options['services_name'] % name, self.app.services_url_prefix,\
                          json.dumps(endpoints, indent=2))
 
         module += "\n})();";
