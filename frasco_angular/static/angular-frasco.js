@@ -4,7 +4,11 @@ var frasco = angular.module('frasco', []);
 
 frasco.factory('frascoServiceFactory', ['$http', function($http) {
   var forEach = angular.forEach;
+  var globalErrorHandlers = [];
   return {
+    registerGlobalErrorHandler: function(callback) {
+      globalErrorHandlers.push(callback);
+    },
     makeEndpoint: function(route, args) {
       var view_args = [];
       var re = /:([a-z0-9_]+)/ig, m;
@@ -36,23 +40,30 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
       var endpoint = function() {
         var spec = buildUrl(functionArgsToData(arguments));
         return {
-          execute: function(options, callback) {
+          execute: function(options, successCallback, errorCallback) {
             options['url'] = spec.url;
             var r = $http(options);
-            if (callback) r.success(callback);
+            if (successCallback) r.success(successCallback);
+            var errorQ = r;
+            if (errorCallback) {
+              errorQ = r.error(errorCallback);
+            }
+            forEach(globalErrorHandlers, function(callback) {
+              errorQ = errorQ.error(callback);
+            });
             return r;
           },
-          get: function(callback) {
-            return this.execute({method: 'GET', params: spec.data}, callback);
+          get: function(successCallback, errorCallback) {
+            return this.execute({method: 'GET', params: spec.data}, successCallback, errorCallback);
           },
-          post: function(callback) {
-            return this.execute({method: 'POST', data: spec.data}, callback);
+          post: function(successCallback, errorCallback) {
+            return this.execute({method: 'POST', data: spec.data}, successCallback, errorCallback);
           },
-          put: function(callback) {
-            return this.execute({method: 'PUT', data: spec.data}, callback);
+          put: function(successCallback, errorCallback) {
+            return this.execute({method: 'PUT', data: spec.data}, successCallback, errorCallback);
           },
-          delete: function(callback) {
-            return this.execute({method: 'DELETE', params: spec.data}, callback);
+          delete: function(successCallback, errorCallback) {
+            return this.execute({method: 'DELETE', params: spec.data}, successCallback, errorCallback);
           }
         }
       };
