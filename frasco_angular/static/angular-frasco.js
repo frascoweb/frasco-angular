@@ -46,10 +46,10 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
             if (successCallback) r.success(successCallback);
             var errorQ = r;
             if (errorCallback) {
-              errorQ = r.error(errorCallback);
+              errorQ = r.catch(errorCallback);
             }
             forEach(globalErrorHandlers, function(callback) {
-              errorQ = errorQ.error(callback);
+              errorQ = errorQ.catch(callback);
             });
             return r;
           },
