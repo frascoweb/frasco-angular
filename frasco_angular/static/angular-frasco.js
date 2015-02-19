@@ -37,11 +37,10 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
         return {url: url, data: leftover};
       };
 
-      var endpoint = function() {
-        var spec = buildUrl(functionArgsToData(arguments));
+      var makeExecuter = function(url, data) {
         return {
           execute: function(options, successCallback, errorCallback) {
-            options['url'] = spec.url;
+            options['url'] = url;
             var r = $http(options);
             if (successCallback) r.success(successCallback);
             var errorQ = r;
@@ -54,18 +53,23 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
             return r;
           },
           get: function(successCallback, errorCallback) {
-            return this.execute({method: 'GET', params: spec.data}, successCallback, errorCallback);
+            return this.execute({method: 'GET', params: data}, successCallback, errorCallback);
           },
           post: function(successCallback, errorCallback) {
-            return this.execute({method: 'POST', data: spec.data}, successCallback, errorCallback);
+            return this.execute({method: 'POST', data: data}, successCallback, errorCallback);
           },
           put: function(successCallback, errorCallback) {
-            return this.execute({method: 'PUT', data: spec.data}, successCallback, errorCallback);
+            return this.execute({method: 'PUT', data: data}, successCallback, errorCallback);
           },
           delete: function(successCallback, errorCallback) {
-            return this.execute({method: 'DELETE', params: spec.data}, successCallback, errorCallback);
+            return this.execute({method: 'DELETE', params: data}, successCallback, errorCallback);
           }
-        }
+        };
+      };
+
+      var endpoint = function() {
+        var spec = buildUrl(functionArgsToData(arguments));
+        return makeExecuter(spec.url, spec.data);
       };
       endpoint.url = function(data) {
         return buildUrl(data).url;
@@ -73,6 +77,10 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
       endpoint.$http = function(url_args, options) {
         options['url'] = endpoint.url(url_args);
         return $http(options);
+      };
+      endpoint.prepare = function(data) {
+        var spec = buildUrl(data);
+        return makeExecuter(spec.url, spec.data);
       };
       return endpoint;
     },
