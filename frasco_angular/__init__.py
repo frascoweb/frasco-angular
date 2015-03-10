@@ -293,5 +293,33 @@ class AngularFeature(Feature):
 
 
 class AngularCompatExtension(Extension):
+    """Jinja extension that does the bare minimum into making angular templates
+    parsable by Jinja so gettext strings can be extacted.
+    Removes angular one-time binding indicators and javascript ternary operator.
+    """
+    special_chars_re = re.compile(r"'[^']+'|\"[^\"]+\"|([?:])")
+
+    def replace_special_chars(self, source, start, end):
+        p = start
+        while True:
+            m = self.special_chars_re.search(source, p, end)
+            if not m:
+                break
+            p = m.end(0)
+            if m.group(1) is None:
+                continue
+            source = source[:m.start(1)] + 'or' + source[m.end(1):]
+        return source
+
     def preprocess(self, source, name, filename=None):
-        return source.replace('{{::', '{{')
+        source = source.replace('{{::', '{{')
+        p = 0
+        while True:
+            p = source.find('{{', p)
+            if p == -1:
+                break
+            p += 2
+            end = source.find('}}', p)
+            source = self.replace_special_chars(source, p, end)
+            p = end + 2
+        return source
