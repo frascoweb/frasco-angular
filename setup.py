@@ -11,12 +11,12 @@ setup(
     description="Angular integration for Frasco",
     packages=find_packages(),
     package_data={
-        'frasco_angular': ['layout.html', 'static/*.js']
+        'frasco_angular': ['templates/*.html', 'static/*.js']
     },
     zip_safe=False,
     platforms='any',
     install_requires=[
-        # 'frasco',
-        # 'frasco-assets'
+        'frasco',
+        'frasco-assets'
     ]
 )
