@@ -15,24 +15,31 @@ Options:
  - *export_macros*: list of macro names to export as directives
  - *static_dir*: folder where assets are located (default: same as `app.static_folder`)
  - *static_url_path*: url where assets are located (default: same as `app.static_url_path`)
- - *app_file*: filename relative to the static_dir of the application
+ - *auto_assets*: whether to include default assets automatically (see further)
+ - *base_layout*: template from which *angular_app_layout.html* extends (default: *frasco_layout.html*)
+ - *app_dir*: base directory for angular files relative to static dir (default: app)
+ - *app_file*: filename relative to the app_dir of the application
    module to generate (default: app/app.js). Set to false to not generate.
  - *app_module*: name of the module for the application
  - *app_deps*: list of dependencies for the application module
- - *partials_dir*: folder relative to the static dir where to store partials
+ - *partials_dir*: folder relative to the app_dir where to store partials
    generated as part of exported macros (default: app/partials)
- - *directives_file*: filename relative to the static dir where to store
+ - *directives_file*: filename relative to the app_dir where to store
    directives generated as part of exported macros (default: app/directives/auto.js)
  - *directives_module*: module name for directives from exported macros (default: directives)
- - *views_dir*: folder relative to the static dir where to store views (default: app/views)
+ - *directives_name*: string template for directive names ("%s" will be replaced by directive name)
+ - *views_dir*: folder relative to the app_dir where to store views (default: app/views)
  - *views_layout*: template filename of the layout for the views (default: angular_layout.html)
- - *routes_file*: filename relative to the static dir for the router (default: app/routes.js)
+ - *routes_file*: filename relative to the app_dir for the router (default: app/routes.js)
  - *routes_module*: module name of the router
- - *services_file*: filename relative to the static dir for the generated services
+ - *services_file*: filename relative to the app_dir for the generated services
    (default: app/services/auto.js)
  - *services_module*: module name for the generated services (default: services)
+ - *services_name*: string template for service names ("%s" will be replaced by the service name)
  - *disable_reloading_endpoints*: whether to create an endpoint which will allow automatic
    reloading of partials when the macro is updated (default: true)
+ - *auto_build*: whether to automatically build the assets
+ - *angular_version*: which angular version to use
 
 ## Assets
 
@@ -49,8 +56,8 @@ Some asets packages are included:
  - *angular-frasco*: Angular module which contains utils to integrate Frasco with Angular
 
 When using an angular view (see further), the *angular-cdn* and *angular-app*
-packages will be automatically included. *angular-app* is the package you
-should use to add custom assets to your app.
+packages will be automatically included (unless *auto_assets* is false).
+*angular-app* is the package you should use to add custom assets to your app.
 
 ## Views
 
