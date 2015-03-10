@@ -1,12 +1,14 @@
 from frasco import (Feature, action, Blueprint, View, render_template,\
                     current_context, command, hook, current_app, signal)
 from frasco.utils import remove_yaml_frontmatter
-from frasco.templating import FileLoader, get_template_source
+from frasco.templating import get_template_source
 import os
 import json
 import re
 import hashlib
 import uuid
+from jinja2 import PackageLoader
+from jinja2.ext import Extension
 
 
 class AngularView(View):
@@ -40,26 +42,29 @@ class AngularFeature(Feature):
                 "static_dir": None, # defaults to app.static_folder
                 "static_url_path": None, # defaults to app.static_url_path
                 "auto_assets": True,
-                "app_file": "app/app.js", # set to False to not generate an app.js
+                "base_layout": "frasco_layout.html",
+                "app_dir": "app/",
+                "app_file": "app.js", # set to False to not generate an app.js
                 "app_module": "app",
                 "app_deps": [],
-                "partials_dir": "app/partials",
-                "directives_file": "app/directives/auto.js",
+                "partials_dir": "partials",
+                "directives_file": "directives/auto.js",
                 "directives_module": "directives",
                 "directives_name": "%s",
                 "auto_add_directives_module": True,
-                "views_dir": "app/views",
-                "routes_file": "app/routes.js",
+                "views_dir": "views",
+                "routes_file": "routes.js",
                 "routes_module": "routes",
                 "auto_add_routes_module": True,
                 "views_layout": "angular_layout.html",
-                "services_file": "app/services/auto.js",
+                "services_file": "services/auto.js",
                 "services_module": "services",
                 "services_name": "%s",
                 "auto_add_services_module": True,
                 "disable_reloading_endpoints": False,
                 "auto_build": True,
-                "angular_version": "1.3.3"}
+                "angular_version": "1.3.3",
+                "add_app_dir_in_babel_extract": True}
 
     build_all_signal = signal('angular_build_all')
     before_build_write_signal = signal('angular_before_build_write')
@@ -96,8 +101,8 @@ class AngularFeature(Feature):
                 {"output": "angular-frasco.min.js", "filters": "jsmin",
                  "contents": ["frasco_angular/angular-frasco.js"]}]})
 
-        app.jinja_env.loader.bottom_loaders.append(FileLoader(
-            os.path.join(os.path.dirname(__file__), "layout.html"), "angular_layout.html"))
+        app.jinja_env.loader.bottom_loaders.append(PackageLoader(__name__))
+        app.jinja_env.loader.set_layout_alias("angular_app_layout.html")
 
         self.auto_assets_pkg = app.assets.register("angular-auto-assets",
             {"output": "frasco-auto-angular",
@@ -115,6 +120,10 @@ class AngularFeature(Feature):
             # note: we don't need to the same for views as a change triggers the reloader
             app.add_url_rule(self.options["static_url_path"] + "/" + self.options["partials_dir"] + "/<macro>.html",
                 endpoint="angular_partial", view_func=self.extract_macro)
+
+        if app.features.exists('babel') and self.options['add_app_dir_in_babel_extract']:
+            app.features.babel.add_extract_dir(os.path.join(self.options['static_dir'], self.options['app_dir']),
+                '.', ['frasco_angular.AngularCompatExtension'])
 
     @command()
     def build(self):
@@ -163,7 +172,7 @@ class AngularFeature(Feature):
                     if isinstance(v, AngularView):
                         views.append((bp.url_prefix, v))
 
-        base_url = self.options["static_url_path"] + "/" + self.options["views_dir"] + "/"
+        base_url = self.options["static_url_path"] + "/" + self.options['app_dir'] + "/" + self.options["views_dir"] + "/"
         when_tpl = "$routeProvider.when('%s', %s);"
         version = hashlib.sha1(str(uuid.uuid4())).hexdigest()[:8]
         routes = []
@@ -182,16 +191,17 @@ class AngularFeature(Feature):
                   "angular.module('%s',['ngRoute']).config(['$routeProvider', '$locationProvider',\n"
                   "  function($routeProvider, $locationProvider) {\n    $locationProvider.html5Mode(true);\n"
                   "    %s\n  }\n]);\n") % (version, self.options["routes_module"], "\n        ".join(routes))
-        filename = os.path.join(self.options["static_dir"], self.options["routes_file"])
-        files.append((filename, module))
-        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [self.options["routes_file"]]})
+        filename = os.path.join(self.options['app_dir'], self.options["routes_file"])
+        files.append((os.path.join(self.options["static_dir"], filename), module))
+        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [filename]})
         if self.options['auto_add_routes_module']:
             self.options["app_deps"].append(self.options["routes_module"])
         return files
 
     def export_view(self, filename):
         source = remove_yaml_frontmatter(get_template_source(self.app, filename))
-        dest = os.path.join(self.options["static_dir"], self.options["views_dir"], filename)
+        dest = os.path.join(self.options["static_dir"], self.options['app_dir'],
+                            self.options["views_dir"], filename)
         return (dest, source)
 
     def build_directives(self):
@@ -212,17 +222,19 @@ class AngularFeature(Feature):
                 (self.options['directives_name'] % name, json.dumps(options, indent=4))
 
         module += "})();";
-        filename = os.path.join(self.options["static_dir"], self.options["directives_file"])
-        files.append((filename, module))
-        self.auto_assets_pkg({"filters": "jsmin", "contents": [self.options["directives_file"]]})
+        filename = os.path.join(self.options["app_dir"], self.options["directives_file"])
+        files.append((os.path.join(self.options["static_dir"], filename), module))
+        self.auto_assets_pkg({"filters": "jsmin", "contents": [filename]})
         if self.options['auto_add_directives_module']:
             self.options["app_deps"].append(self.options["directives_module"])
         return files
 
     def export_macro(self, macro):
         partial, options = self.extract_macro(macro, True)
-        filename = os.path.join(self.options["static_dir"], self.options["partials_dir"], macro + ".html")
-        url = self.options["static_url_path"] + "/" + self.options["partials_dir"] + "/" + macro + ".html"
+        filename = os.path.join(self.options["static_dir"], self.options['app_dir'],
+                                self.options["partials_dir"], macro + ".html")
+        url = self.options["static_url_path"] + "/" + self.options['app_dir'] + "/" \
+            + self.options["partials_dir"] + "/" + macro + ".html"
         options["templateUrl"] = url
         return (filename, partial.strip(), options)
 
@@ -253,13 +265,14 @@ class AngularFeature(Feature):
             return []
         module = ("/* This file is auto-generated by frasco-angular. DO NOT MODIFY. */\n'use strict';\n"
                   "\nangular.module('%s', [\n  '%s'\n]);\n") % (self.options["app_module"], "',\n  '".join(self.options["app_deps"]))
-        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [self.options["app_file"]]})
-        return [(os.path.join(self.options["static_dir"], self.options["app_file"]), module)]
+        filename = os.path.join(self.options['app_dir'], self.options['app_file'])
+        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [filename]})
+        return [(os.path.join(self.options["static_dir"], filename), module)]
 
     def build_services(self):
         if not self.options["services_file"]:
             return []
-        filename = os.path.join(self.options["static_dir"], self.options["services_file"])
+        filename = os.path.join(self.options["app_dir"], self.options["services_file"])
         module = ("/* This file is auto-generated by frasco-angular. DO NOT MODIFY. */\n'use strict';\n"
                   "\n(function() {\n\nvar services = angular.module('%s', ['frasco']);\n") % self.options["services_module"]
 
@@ -273,7 +286,12 @@ class AngularFeature(Feature):
                          json.dumps(endpoints, indent=2))
 
         module += "\n})();";
-        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [self.options["services_file"]]})
+        self.auto_assets_pkg.append({"filters": "jsmin", "contents": [filename]})
         if self.options["auto_add_services_module"]:
             self.options["app_deps"].append(self.options["services_module"])
-        return [(filename, module)]
+        return [(os.path.join(self.options["static_dir"], filename), module)]
+
+
+class AngularCompatExtension(Extension):
+    def preprocess(self, source, name, filename=None):
+        return source.replace('{{::', '{{')
