@@ -123,7 +123,7 @@ class AngularFeature(Feature):
 
         if app.features.exists('babel') and self.options['add_app_dir_in_babel_extract']:
             app.features.babel.add_extract_dir(os.path.join(self.options['static_dir'], self.options['app_dir']),
-                '.', ['frasco_angular.AngularCompatExtension'])
+                '.', ['frasco_angular.AngularCompatExtension'], [('javascript:**.js', {})])
 
     @command()
     def build(self):
@@ -297,7 +297,9 @@ class AngularCompatExtension(Extension):
     parsable by Jinja so gettext strings can be extacted.
     Removes angular one-time binding indicators and javascript ternary operator.
     """
-    special_chars_re = re.compile(r"'[^']+'|\"[^\"]+\"|([?:])")
+    special_chars_re = re.compile(r"'[^']*'|\"[^\"]+\"|([?:!&|$=]{1,3})")
+    replacements = {'!': ' not ', '$': '', '=': '=', '==': '==',
+                    '===': '==', '!=': '!=', '!==': '!='}
 
     def replace_special_chars(self, source, start, end):
         p = start
@@ -308,7 +310,8 @@ class AngularCompatExtension(Extension):
             p = m.end(0)
             if m.group(1) is None:
                 continue
-            source = source[:m.start(1)] + 'or' + source[m.end(1):]
+            repl = self.replacements.get(m.group(1), ' or ')
+            source = source[:m.start(1)] + repl + source[m.end(1):]
         return source
 
     def preprocess(self, source, name, filename=None):
