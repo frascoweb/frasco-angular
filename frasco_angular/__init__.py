@@ -282,7 +282,11 @@ class AngularFeature(Feature):
         for name, srv in self.app.services.iteritems():
             endpoints = {}
             for view in srv.views:
-                endpoints[view.name] = [convert_url_args(view.url_rules[0][0]), view.func.view_args]
+                args = []
+                if hasattr(view.func, '_request_params'):
+                    for p in reversed(view.func._request_params):
+                        args.extend(p.names)
+                endpoints[view.name] = [convert_url_args(view.url_rules[0][0]), args]
             module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
                        "return frascoServiceFactory.make('%s', [], %s);\n}]);\n") % \
                         (self.options['services_name'] % name, self.app.services_url_prefix,\
