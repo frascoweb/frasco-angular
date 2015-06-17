@@ -5,9 +5,13 @@ var frasco = angular.module('frasco', []);
 frasco.factory('frascoServiceFactory', ['$http', function($http) {
   var forEach = angular.forEach;
   var globalErrorHandlers = [];
+  var defaultHttpOptions = {};
   return {
     registerGlobalErrorHandler: function(callback) {
       globalErrorHandlers.push(callback);
+    },
+    setDefaultHttpOptions: function(options) {
+      defaultHttpOptions = options;
     },
     makeEndpoint: function(route, args) {
       var view_args = [];
@@ -41,7 +45,7 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
         return {
           execute: function(options, successCallback, errorCallback) {
             options['url'] = url;
-            var r = $http(options);
+            var r = $http(angular.extend({}, defaultHttpOptions, options));
             if (successCallback) r.success(successCallback);
             var errorQ = r;
             if (errorCallback) {
@@ -52,17 +56,37 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
             });
             return r;
           },
-          get: function(successCallback, errorCallback) {
-            return this.execute({method: 'GET', params: data}, successCallback, errorCallback);
+          get: function(successCallback, errorCallback, options) {
+            if (typeof(errorCallback) !== 'function') {
+              options = errorCallback;
+              errorCallback = null;
+            }
+            return this.execute(angular.extend({method: 'GET', params: data}, options || {}),
+              successCallback, errorCallback);
           },
-          post: function(successCallback, errorCallback) {
-            return this.execute({method: 'POST', data: data}, successCallback, errorCallback);
+          post: function(successCallback, errorCallback, options) {
+            if (typeof(errorCallback) !== 'function') {
+              options = errorCallback;
+              errorCallback = null;
+            }
+            return this.execute(angular.extend({method: 'POST', data: data}, options || {}),
+              successCallback, errorCallback);
           },
-          put: function(successCallback, errorCallback) {
-            return this.execute({method: 'PUT', data: data}, successCallback, errorCallback);
+          put: function(successCallback, errorCallback, options) {
+            if (typeof(errorCallback) !== 'function') {
+              options = errorCallback;
+              errorCallback = null;
+            }
+            return this.execute(angular.extend({method: 'PUT', data: data}, options || {}),
+              successCallback, errorCallback);
           },
-          delete: function(successCallback, errorCallback) {
-            return this.execute({method: 'DELETE', params: data}, successCallback, errorCallback);
+          delete: function(successCallback, errorCallback, options) {
+            if (typeof(errorCallback) !== 'function') {
+              options = errorCallback;
+              errorCallback = null;
+            }
+            return this.execute(angular.extend({method: 'DELETE', params: data}, options || {}),
+              successCallback, errorCallback);
           }
         };
       };
@@ -76,7 +100,7 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
       };
       endpoint.$http = function(url_args, options) {
         options['url'] = endpoint.url(url_args);
-        return $http(options);
+        return $http(angular.extend({}, defaultHttpOptions, options));
       };
       endpoint.prepare = function(data) {
         var spec = buildUrl(data);
