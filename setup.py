@@ -17,6 +17,7 @@ setup(
     platforms='any',
     install_requires=[
         'frasco',
-        'frasco-assets'
+        'frasco-assets',
+        'htmlmin'
     ]
 )
