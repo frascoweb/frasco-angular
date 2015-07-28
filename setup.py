@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='frasco-angular',
-    version='0.3',
+    version='0.3.0',
     url='http://github.com/frascoweb/frasco-angular',
     license='MIT',
     author='Maxime Bouroumeau-Fuseau',
