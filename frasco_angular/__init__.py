@@ -142,7 +142,7 @@ class AngularFeature(Feature):
         for filename, source in files:
             if not os.path.exists(os.path.dirname(filename)):
                 os.makedirs(os.path.dirname(filename))
-            with open(filename, 'w') as f:
+            with codecs.open(filename, "w", "utf-8") as f:
                 f.write(source)
 
     @command()
