@@ -304,7 +304,7 @@ class AngularFeature(Feature):
                 if hasattr(view.func, '_request_params'):
                     for p in reversed(view.func._request_params):
                         args.extend(p.names)
-                endpoints[view.name] = [convert_url_args(view.url_rules[0][0]), args]
+                endpoints[view.name] = [convert_url_args(view.url_rules[-1][0]), args]
             module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
                        "return frascoServiceFactory.make('%s', [], %s);\n}]);\n") % \
                         (self.options['services_name'] % name, self.app.services_url_prefix,\
