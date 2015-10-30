@@ -13,7 +13,7 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
     setDefaultHttpOptions: function(options) {
       defaultHttpOptions = options;
     },
-    makeEndpoint: function(route, args) {
+    makeEndpoint: function(name, route, args) {
       var view_args = [];
       var re = /:([a-z0-9_]+)/ig, m;
       while ((m = re.exec(route)) !== null) {
@@ -95,6 +95,7 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
         var spec = buildUrl(functionArgsToData(arguments));
         return makeExecuter(spec.url, spec.data);
       };
+      endpoint.__name__ = name;
       endpoint.url = function(data) {
         return buildUrl(data).url;
       };
@@ -108,11 +109,12 @@ frasco.factory('frascoServiceFactory', ['$http', function($http) {
       };
       return endpoint;
     },
-    make: function(base_url, args, actions) {
-      var o = {};
+    make: function(service_name, base_url, args, actions) {
+      var o = {'__name__': service_name};
       var self = this;
       forEach(actions, function(spec, name) {
-        o[name] = self.makeEndpoint(base_url + spec[0], args.concat(spec[1]));
+        o[name] = self.makeEndpoint(service_name + "." + name,
+          base_url + spec[0], args.concat(spec[1]));
       });
       return o;
     }

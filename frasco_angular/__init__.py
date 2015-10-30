@@ -306,8 +306,8 @@ class AngularFeature(Feature):
                         args.extend(p.names)
                 endpoints[view.name] = [convert_url_args(view.url_rules[-1][0]), args]
             module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
-                       "return frascoServiceFactory.make('%s', [], %s);\n}]);\n") % \
-                        (self.options['services_name'] % name, self.app.services_url_prefix,\
+                       "return frascoServiceFactory.make('%s', '%s', [], %s);\n}]);\n") % \
+                        (self.options['services_name'] % name, name, self.app.services_url_prefix,\
                          json.dumps(endpoints, indent=2))
 
         module += "\n})();";
