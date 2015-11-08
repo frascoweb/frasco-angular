@@ -15,11 +15,11 @@ import codecs
 
 
 class AngularView(View):
-    def __init__(self, template=None, layout=None, angular_url=None, **kwargs):
-        view_attrs = ('name', 'url', 'methods', 'url_rules')
+    def __init__(self, name=None, url=None, template=None, layout=None, angular_url=None, **kwargs):
+        view_attrs = ('methods', 'url_rules')
         self.angular_url = angular_url
         self.route_options = { k: kwargs.pop(k) for k in kwargs.keys() if k not in view_attrs}
-        super(AngularView, self).__init__(**kwargs)
+        super(AngularView, self).__init__(name=name, url=url, **kwargs)
         self.template = template
         self.layout = layout
 
@@ -190,8 +190,12 @@ class AngularFeature(Feature):
         when_tpl = "$routeProvider.when('%s', %s);"
         routes = []
         for url_prefix, view in self._iter_angular_views():
-            files.append(self.export_view(view.template))
-            spec = dict(view.route_options, templateUrl=base_url + view.template + '?' + version)
+            spec = dict(view.route_options)
+            if view.template:
+                files.append(self.export_view(view.template))
+                spec['templateUrl'] = base_url + view.template
+            if 'templateUrl' in spec:
+                spec['templateUrl'] = spec['templateUrl'] + '?' + version
             if view.angular_url:
                 routes.append(when_tpl % (view.angular_url, json.dumps(spec)))
             else:
