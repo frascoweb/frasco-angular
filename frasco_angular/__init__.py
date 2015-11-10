@@ -347,8 +347,9 @@ class AngularFeature(Feature):
         disable = self.options["disable_templates_cache"]
         if (disable is None and not self.app.debug) or disable is False:
             for url_prefix, view in self._iter_angular_views():
-                dest, source = self.export_view(view.template)
-                process_file(dest, content=source)
+                if view.template:
+                    dest, source = self.export_view(view.template)
+                    process_file(dest, content=source)
             for path, dirnames, filenames in os.walk(os.path.join(self.options["static_dir"], self.options['app_dir'])):
                 for filename in filenames:
                     process_file(filename, path)
