@@ -367,7 +367,7 @@ class AngularCompatExtension(Extension):
     parsable by Jinja so gettext strings can be extacted.
     Removes angular one-time binding indicators and javascript ternary operator.
     """
-    special_chars_re = re.compile(r"'[^']*'|\"[^\"]+\"|\{[^{]+\}|([?:!&|$=]{1,3})")
+    special_chars_re = re.compile(r"'[^']*'|\"[^\"]+\"|(\{[^{]+\})|([?:!&|$=]{1,3})")
     replacements = {'!': ' not ', '$': '', '=': '=', '==': '==',
                     '===': '==', '!=': '!=', '!==': '!=', '&&': ' and ', '||': ' or '}
 
@@ -382,7 +382,10 @@ class AngularCompatExtension(Extension):
             if m.group(1) is None:
                 p = m.end(0)
                 continue
-            repl = self.replacements.get(m.group(1), ' or ')
+            if m.group(1).startswith('{'):
+                repl = 'True'
+            else:
+                repl = replacements.get(m.group(1), ' or ')
             p = m.start(1) + len(repl)
             source = source[:m.start(1)] + repl + source[m.end(1):]
         return source, end + 2
