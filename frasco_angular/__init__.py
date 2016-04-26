@@ -307,8 +307,8 @@ class AngularFeature(Feature):
             endpoints = {}
             for view in srv.views:
                 args = []
-                if hasattr(view.func, '_request_params'):
-                    for p in reversed(view.func._request_params):
+                if hasattr(view.func, 'request_params'):
+                    for p in reversed(view.func.request_params):
                         args.extend(p.names)
                 endpoints[view.name] = [convert_url_args(view.url_rules[-1][0]), args]
             module += ("\nservices.factory('%s', ['frascoServiceFactory', function(frascoServiceFactory) {\n"
