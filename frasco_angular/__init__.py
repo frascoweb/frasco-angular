@@ -46,6 +46,7 @@ class AngularFeature(Feature):
                 "static_dir": None, # defaults to app.static_folder
                 "static_url_path": None, # defaults to app.static_url_path
                 "auto_assets": True,
+                "use_layout": True,
                 "base_layout": "frasco_layout.html",
                 "app_dir": "app",
                 "app_file": "app.js", # set to False to not generate an app.js
@@ -113,7 +114,8 @@ class AngularFeature(Feature):
                  "contents": ["frasco_angular/angular-frasco.js"]}]})
 
         app.jinja_env.loader.bottom_loaders.append(PackageLoader(__name__))
-        app.jinja_env.loader.set_layout_alias("angular_app_layout.html")
+        if self.options["use_layout"]:
+            app.jinja_env.loader.set_layout_alias("angular_app_layout.html")
 
         self.auto_assets_pkg = app.assets.register("angular-auto-assets",
             {"output": "frasco-auto-angular",
