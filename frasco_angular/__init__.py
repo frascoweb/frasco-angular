@@ -74,7 +74,6 @@ class AngularFeature(Feature):
                 "auto_add_templates_module": True,
                 "templates_matcher": r".*\.html$",
                 "disable_reloading_endpoints": False,
-                "auto_build": True,
                 "angular_version": "1.3.3",
                 "add_app_dir_in_babel_extract": True}
 
@@ -124,7 +123,7 @@ class AngularFeature(Feature):
             app.features.assets.add_default("@angular-cdn", "@angular-route-cdn",
                 "@angular-auto-assets")
 
-        signal('before_assets_build').connect(lambda *args: self.build(), weak=False)
+        app.features.assets.register_assets_builder(self.build)
 
         if not self.options["disable_reloading_endpoints"]:
             # adding the url rule ensure that we don't need to reload the app to regenerate the
@@ -155,12 +154,6 @@ class AngularFeature(Feature):
         for filename, source in files:
             if os.path.exists(filename):
                 os.unlink(filename)
-
-    @hook()
-    def before_request(self):
-        if not self.built and self.options["auto_build"]:
-            self.build()
-            self.built = True
 
     def build_all(self, version=None):
         if not version:
