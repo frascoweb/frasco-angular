@@ -72,6 +72,7 @@ class AngularFeature(Feature):
                 "templates_module": "templatesCache",
                 "disable_templates_cache": None, # app.debug
                 "auto_add_templates_module": True,
+                "append_version_to_template_names": True,
                 "templates_matcher": r".*\.html$",
                 "disable_reloading_endpoints": False,
                 "angular_version": "1.3.3",
@@ -338,7 +339,9 @@ class AngularFeature(Feature):
                 if not content:
                     with codecs.open(pathname, 'r', 'utf-8') as f:
                         content = f.read()
-                module.append("  $templateCache.put('%s?%s', %s);" % (relname, version, json.dumps(htmlmin.minify(content))))
+                if self.options['append_version_to_template_names']:
+                    relname += "?%s" % version
+                module.append("  $templateCache.put('%s', %s);" % (relname, json.dumps(htmlmin.minify(content))))
                 done.add(pathname)
 
         disable = self.options["disable_templates_cache"]
