@@ -30,7 +30,7 @@ class AngularView(View):
 
 _endmacro_re = re.compile(r"\{%-?\s*endmacro\s*%\}")
 _ngdirective_re = re.compile(r"\{#\s*ngdirective:(.+)#\}")
-_url_arg_re = re.compile(r"<([a-z]:)?([a-z0-9_]+)>")
+_url_arg_re = re.compile(r"<([a-z]+:)?([a-z0-9_]+)>")
 
 
 def convert_url_args(url):
