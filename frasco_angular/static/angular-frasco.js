@@ -56,7 +56,7 @@ angular.module('frasco', []).provider('frascoServiceFactory', function() {
               var r = $http(angular.extend({}, defaultHttpOptions, options));
               if (successCallback) {
                 r.then(function(resp) {
-                  successCallback(resp.data, resp);
+                  return successCallback(resp.data, resp);
                 });
               }
               var errorQ = r;
